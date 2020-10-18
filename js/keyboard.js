@@ -7,12 +7,13 @@ const Keyboard = {
 
     eventHandlers: {
         oninput: null,
-        onclose: null
+        onclose: null,
     },
 
     properties: {
         value: "",
-        capsLock: false
+        capsLock: false,
+        shiftKey: false
     },
 
     init() {
@@ -36,6 +37,7 @@ const Keyboard = {
             element.addEventListener("focus", () => {
                 this.open(element.value, currentValue => {
                     element.value = currentValue;
+                    element.focus();
                 });
             });
         });
@@ -47,8 +49,8 @@ const Keyboard = {
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
             "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
             "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", "enter",
-            "done", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?",
-            "space"
+            "shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?",
+            "done", "space"
         ];
 
         // Creates HTML for an icon
@@ -87,6 +89,18 @@ const Keyboard = {
 
                     break;
 
+                case "shift":
+                    keyElement.classList.add("keyboard_key_wide", "keyboard_key_activatable");
+                    keyElement.innerHTML = createIconHTML("keyboard_arrow_up");
+
+                    keyElement.addEventListener("click", () => {
+                        this._toggleShift();
+                        keyElement.classList.toggle("keyboard_key_active", this.properties.shiftKey);
+                    });
+
+                    break;
+
+
                 case "enter":
                     keyElement.classList.add("keyboard_key_wide");
                     keyElement.innerHTML = createIconHTML("keyboard_return");
@@ -124,8 +138,13 @@ const Keyboard = {
                     keyElement.textContent = key.toLowerCase();
 
                     keyElement.addEventListener("click", () => {
-                        this.properties.value += this.properties.capsLock ? key.toUpperCase() : key.toLowerCase();
-                        this._triggerEvent("oninput");
+                      if (this.properties.shiftKey) {
+                        console.log(this.properties.shiftKey)
+                        this.properties.shiftKey = false;
+                        console.log(key.toUpperCase(), this.properties.shiftKey);
+                      };
+                      this.properties.value += this.properties.capsLock ? key.toUpperCase() : key.toLowerCase();
+                      this._triggerEvent("oninput");
                     });
 
                     break;
@@ -155,6 +174,16 @@ const Keyboard = {
                 key.textContent = this.properties.capsLock ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
             }
         }
+    },
+
+    _toggleShift() {
+      this.properties.shiftKey = !this.properties.shiftKey;
+
+      for (const key of this.elements.keys) {
+          if (key.childElementCount === 0) {
+              key.textContent = this.properties.shiftKey ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
+          }
+      }
     },
 
     open(initialValue, oninput, onclose) {
