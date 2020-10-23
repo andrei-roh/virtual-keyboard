@@ -51,7 +51,6 @@
     width: 36%;
     max-width: 500px;
 }
-
 .keyboard_key_activatable::after {
     content: '';
     top: 10px;

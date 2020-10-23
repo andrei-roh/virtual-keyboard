@@ -1,3 +1,5 @@
+var shiftElement = {};
+
 const Keyboard = {
     elements: {
         main: null,
@@ -96,6 +98,7 @@ const Keyboard = {
                     keyElement.addEventListener("click", () => {
                         this._toggleShift();
                         keyElement.classList.toggle("keyboard_key_active", this.properties.shiftKey);
+                        shiftElement = keyElement;
                     });
 
                     break;
@@ -139,12 +142,30 @@ const Keyboard = {
 
                     keyElement.addEventListener("click", () => {
                       if (this.properties.shiftKey) {
-                        console.log(this.properties.shiftKey)
-                        this.properties.shiftKey = false;
-                        console.log(key.toUpperCase(), this.properties.shiftKey);
+                        if (!this.properties.capsLock){
+                          this.properties.capsLock = false;
+                          this.properties.value += key.toUpperCase()
+                          this._turnOffShift();
+                          shiftElement.classList.toggle('keyboard_key_active', this.properties.shiftKey);
+                          this.properties.shiftKey = true;
+                        }
+                        else {this.properties.capsLock = false;
+                          this.properties.value += key.toLowerCase()
+                          this._turnOffShift();
+                          shiftElement.classList.toggle('keyboard_key_active', this.properties.shiftKey);
+                          this.properties.shiftKey = true;
+                          this.properties.capsLock = true;
+                        }
                       };
-                      this.properties.value += this.properties.capsLock ? key.toUpperCase() : key.toLowerCase();
+                      if (this.properties.capsLock) {
+                        this.properties.value += this.properties.capsLock ? key.toUpperCase() : key.toLowerCase();
+                      }
+                      if(!this.properties.shiftKey && !this.properties.capsLock){
+                        this.properties.value += key.toLowerCase()
+                      }
+
                       this._triggerEvent("oninput");
+                      this.properties.shiftKey = false;
                     });
 
                     break;
@@ -177,6 +198,16 @@ const Keyboard = {
     },
 
     _toggleShift() {
+      this.properties.shiftKey = !this.properties.shiftKey;
+
+      for (const key of this.elements.keys) {
+          if (key.childElementCount === 0) {
+              key.textContent = this.properties.shiftKey ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
+          }
+      }
+    },
+
+    _turnOffShift() {
       this.properties.shiftKey = !this.properties.shiftKey;
 
       for (const key of this.elements.keys) {
