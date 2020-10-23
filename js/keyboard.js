@@ -39,6 +39,7 @@ const Keyboard = {
             element.addEventListener("focus", () => {
                 this.open(element.value, currentValue => {
                     element.value = currentValue;
+                    console.log(cursorPosition);
                     element.focus();
                 });
             });
@@ -52,7 +53,7 @@ const Keyboard = {
             "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
             "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", "enter",
             "shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?",
-            "done", "space"
+            "done", "space", "arrow_left", "arrow_right"
         ];
 
         // Creates HTML for an icon
@@ -103,7 +104,6 @@ const Keyboard = {
 
                     break;
 
-
                 case "enter":
                     keyElement.classList.add("keyboard_key_wide");
                     keyElement.innerHTML = createIconHTML("keyboard_return");
@@ -137,6 +137,24 @@ const Keyboard = {
 
                     break;
 
+                case "arrow_left":
+                    keyElement.classList.add("keyboard_key_wide");
+                    keyElement.innerHTML = createIconHTML("keyboard_arrow_left");
+
+                    keyElement.addEventListener("click", () => {
+                    });
+
+                    break;
+
+                case "arrow_right":
+                    keyElement.classList.add("keyboard_key_wide");
+                    keyElement.innerHTML = createIconHTML("keyboard_arrow_right");
+
+                    keyElement.addEventListener("click", () => {
+                    });
+
+                    break;
+
                 default:
                     keyElement.textContent = key.toLowerCase();
 
@@ -154,7 +172,7 @@ const Keyboard = {
                           this._turnOffShift();
                           shiftElement.classList.toggle('keyboard_key_active', this.properties.shiftKey);
                           this.properties.shiftKey = true;
-                          this.properties.capsLock = true;
+                          // this.properties.capsLock = true;
                         }
                       };
                       if (this.properties.capsLock) {
@@ -215,6 +233,20 @@ const Keyboard = {
               key.textContent = this.properties.shiftKey ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
           }
       }
+    },
+
+    getPosition() {
+      obj.focus();
+      if(obj.selectionStart) return obj.selectionStart;
+        else if (document.selection){
+          var sel = document.selection.createRange();
+          var clone = sel.duplicate();
+          sel.collapse(true);
+          clone.moveToElementText(obj);
+          clone.setEndPoint('EndToEnd', sel);
+          return clone.text.length;
+          }
+      return 0;
     },
 
     open(initialValue, oninput, onclose) {
