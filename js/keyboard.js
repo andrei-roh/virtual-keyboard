@@ -1,4 +1,5 @@
 var shiftElement = {};
+var currentPosition = 0;
 
 const Keyboard = {
     elements: {
@@ -36,14 +37,40 @@ const Keyboard = {
 
         // Automatically use keyboard for elements with .use_keyboard_input
         document.querySelectorAll(".use_keyboard_input").forEach(element => {
+
             element.addEventListener("focus", () => {
+              setCaretPosition(textarea, currentPosition);
+                this.open(element.value, currentValue => {
+                    currentPosition += 1;
+                    textarea.value = currentValue;
+                    element.focus();
+                });
+                element.addEventListener("click", () => {
+                  currentPosition = textarea.selectionStart;
+                });
+            });
+            element.addEventListener("keydown", () => {
                 this.open(element.value, currentValue => {
                     element.value = currentValue;
-                    console.log(cursorPosition);
                     element.focus();
                 });
             });
         });
+
+        //Set cursor position
+        function setCaretPosition(ctrl, position) {
+          if(ctrl.setSelectionRange) {
+              ctrl.focus();
+              ctrl.setSelectionRange(position, position);
+          }
+          else if (ctrl.createTextRange) {
+              var range = ctrl.createTextRange();
+              range.collapse(true);
+              range.moveEnd('character', position);
+              range.moveStart('character', position);
+              range.select();
+          }
+        }
     },
 
     _createKeys() {
@@ -142,6 +169,8 @@ const Keyboard = {
                     keyElement.innerHTML = createIconHTML("keyboard_arrow_left");
 
                     keyElement.addEventListener("click", () => {
+                      this._toggleLeft();
+                      this._triggerEvent("oninput");
                     });
 
                     break;
@@ -151,6 +180,8 @@ const Keyboard = {
                     keyElement.innerHTML = createIconHTML("keyboard_arrow_right");
 
                     keyElement.addEventListener("click", () => {
+                      this._toggleRight();
+                      this._triggerEvent("oninput");
                     });
 
                     break;
@@ -172,7 +203,6 @@ const Keyboard = {
                           this._turnOffShift();
                           shiftElement.classList.toggle('keyboard_key_active', this.properties.shiftKey);
                           this.properties.shiftKey = true;
-                          // this.properties.capsLock = true;
                         }
                       };
                       if (this.properties.capsLock) {
@@ -234,19 +264,10 @@ const Keyboard = {
           }
       }
     },
+    _toggleLeft() {
+    },
 
-    getPosition() {
-      obj.focus();
-      if(obj.selectionStart) return obj.selectionStart;
-        else if (document.selection){
-          var sel = document.selection.createRange();
-          var clone = sel.duplicate();
-          sel.collapse(true);
-          clone.moveToElementText(obj);
-          clone.setEndPoint('EndToEnd', sel);
-          return clone.text.length;
-          }
-      return 0;
+    _toggleRight() {
     },
 
     open(initialValue, oninput, onclose) {
