@@ -197,9 +197,6 @@ const Keyboard = {
 
                     break;
 
-                case "en/ru":
-
-
                 default:
                     keyElement.textContent = key.toLowerCase();
 
