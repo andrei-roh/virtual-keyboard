@@ -40,6 +40,7 @@ const Keyboard = {
 
             element.addEventListener("focus", () => {
               setCaretPosition(textarea, currentPosition);
+              element.focus();
                 this.open(element.value, currentValue => {
                     currentPosition += 1;
                     textarea.value = currentValue;
@@ -51,6 +52,7 @@ const Keyboard = {
             });
             element.addEventListener("keydown", () => {
                 this.open(element.value, currentValue => {
+                    currentPosition += 1;
                     element.value = currentValue;
                     element.focus();
                 });
@@ -75,12 +77,19 @@ const Keyboard = {
 
     _createKeys() {
         const fragment = document.createDocumentFragment();
-        const keyLayout = [
+        const keyLayoutEn = [
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
             "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
             "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", "enter",
             "shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?",
-            "done", "space", "arrow_left", "arrow_right"
+            "done", "space", "arrow_left", "arrow_right", "en/ru"
+        ];
+        const keyLayoutRu = [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
+            "й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з",
+            "caps", "ф", "ы", "в", "а", "п", "р", "о", "л", "д", "enter",
+            "shift", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "?",
+            "done", "space", "arrow_left", "arrow_right", "en/ru"
         ];
 
         // Creates HTML for an icon
@@ -88,7 +97,7 @@ const Keyboard = {
             return `<i class="material-icons">${icon_name}</i>`;
         };
 
-        keyLayout.forEach(key => {
+        keyLayoutEn.forEach(key => {
             const keyElement = document.createElement("button");
             const insertLineBreak = ["backspace", "p", "enter", "?"].indexOf(key) !== -1;
 
@@ -169,6 +178,7 @@ const Keyboard = {
                     keyElement.innerHTML = createIconHTML("keyboard_arrow_left");
 
                     keyElement.addEventListener("click", () => {
+                      currentPosition -= 1;
                       this._toggleLeft();
                       this._triggerEvent("oninput");
                     });
@@ -180,11 +190,15 @@ const Keyboard = {
                     keyElement.innerHTML = createIconHTML("keyboard_arrow_right");
 
                     keyElement.addEventListener("click", () => {
+                      currentPosition += 1;
                       this._toggleRight();
                       this._triggerEvent("oninput");
                     });
 
                     break;
+
+                case "en/ru":
+
 
                 default:
                     keyElement.textContent = key.toLowerCase();
