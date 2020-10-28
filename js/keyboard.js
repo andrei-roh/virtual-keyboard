@@ -39,7 +39,7 @@ const Keyboard = {
         document.querySelectorAll(".use_keyboard_input").forEach(element => {
 
             element.addEventListener("focus", () => {
-              setCaretPosition(textarea, currentPosition);
+              setCursorPosition(textarea, currentPosition);
               element.focus();
                 this.open(element.value, currentValue => {
                     currentPosition += 1;
@@ -60,16 +60,17 @@ const Keyboard = {
         });
 
         //Set cursor position
-        function setCaretPosition(ctrl, position) {
-          if(ctrl.setSelectionRange) {
-              ctrl.focus();
-              ctrl.setSelectionRange(position, position);
+        function setCursorPosition(textarea, currentPosition) {
+          console.log(textarea)
+          if(textarea.setSelectionRange) {
+              textarea.focus();
+              textarea.setSelectionRange(currentPosition, currentPosition);
           }
-          else if (ctrl.createTextRange) {
+          else if(textarea.createTextRange) {
               var range = ctrl.createTextRange();
               range.collapse(true);
-              range.moveEnd('character', position);
-              range.moveStart('character', position);
+              range.moveEnd('character', currentPosition);
+              range.moveStart('character', currentPosition);
               range.select();
           }
         }
@@ -276,9 +277,6 @@ const Keyboard = {
       }
     },
     _toggleLeft() {
-    },
-
-    _toggleRight() {
     },
 
     open(initialValue, oninput, onclose) {
