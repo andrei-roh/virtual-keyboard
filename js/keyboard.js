@@ -66,11 +66,6 @@ const Keyboard = {
               });
 
               element.addEventListener("keydown", () => {
-                //     this.open(element.value, currentValue => {
-                        // currentPosition += 1;
-                         // element.value = currentValue;
-                         // element.focus();
-                //     });
               });
             });
         });
@@ -347,7 +342,7 @@ const Keyboard = {
         this.eventHandlers.oninput = oninput;
         this.eventHandlers.onclose = onclose;
         this.elements.main.classList.add("keyboard_hidden");
-    }
+    },
 };
 
 window.addEventListener("DOMContentLoaded", function () {
