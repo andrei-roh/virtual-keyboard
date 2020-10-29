@@ -1,5 +1,9 @@
 var shiftElement = {};
 var currentPosition = 0;
+var rightPart = '';
+var currentLanguage = [];
+var langKey = false;
+
 
 const Keyboard = {
     elements: {
@@ -37,37 +41,49 @@ const Keyboard = {
 
         // Automatically use keyboard for elements with .use_keyboard_input
         document.querySelectorAll(".use_keyboard_input").forEach(element => {
-
             element.addEventListener("focus", () => {
               setCursorPosition(textarea, currentPosition);
-              element.focus();
-                this.open(element.value, currentValue => {
-                    currentPosition += 1;
-                    textarea.value = currentValue;
-                    element.focus();
-                });
-                element.addEventListener("click", () => {
-                  currentPosition = textarea.selectionStart;
-                });
-            });
-            element.addEventListener("keydown", () => {
-                this.open(element.value, currentValue => {
-                    currentPosition += 1;
-                    element.value = currentValue;
-                    element.focus();
-                });
+              this.open(element.value, currentValue => {
+                currentPosition += 1;
+                element.value = currentValue + rightPart;
+                element.focus();
+                if (rightPart != ''){
+                    rightPart = '';
+                    currentPosition = textarea.selectionStart;
+                    setCursorPosition(textarea, currentPosition);
+                    rightPart = element.value.substr(currentPosition)
+                    this.properties.value = element.value.substr(0, currentPosition);
+                    setCursorPosition(textarea, currentPosition);
+                }
+              });
+
+              textarea.addEventListener("click", () => {
+                currentPosition = textarea.selectionStart;
+                setCursorPosition(textarea, currentPosition);
+                rightPart = element.value.substr(currentPosition)
+                this.properties.value = element.value.substr(0, currentPosition);
+                setCursorPosition(textarea, currentPosition);
+              });
+
+              element.addEventListener("keydown", () => {
+                //     this.open(element.value, currentValue => {
+                        // currentPosition += 1;
+                         // element.value = currentValue;
+                         // element.focus();
+                //     });
+              });
             });
         });
 
         //Set cursor position
         function setCursorPosition(textarea, currentPosition) {
-          console.log(textarea)
+
           if(textarea.setSelectionRange) {
               textarea.focus();
               textarea.setSelectionRange(currentPosition, currentPosition);
           }
           else if(textarea.createTextRange) {
-              var range = ctrl.createTextRange();
+              var range = textarea.createTextRange();
               range.collapse(true);
               range.moveEnd('character', currentPosition);
               range.moveStart('character', currentPosition);
@@ -83,14 +99,14 @@ const Keyboard = {
             "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
             "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", "enter",
             "shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?",
-            "done", "space", "arrow_left", "arrow_right", "en/ru"
+            "done", "space", "arrow_left", "arrow_right", "lang"
         ];
         const keyLayoutRu = [
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
             "й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з",
             "caps", "ф", "ы", "в", "а", "п", "р", "о", "л", "д", "enter",
             "shift", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "?",
-            "done", "space", "arrow_left", "arrow_right", "en/ru"
+            "done", "space", "arrow_left", "arrow_right", "lang"
         ];
 
         // Creates HTML for an icon
@@ -98,7 +114,15 @@ const Keyboard = {
             return `<i class="material-icons">${icon_name}</i>`;
         };
 
-        keyLayoutEn.forEach(key => {
+        if (langKey == false) {
+          currentLanguage = keyLayoutEn;
+        }
+        if (langKey == true) {
+          currentLanguage = keyLayoutRu;
+          window.location.reload();
+        }
+
+        currentLanguage.forEach(key => {
             const keyElement = document.createElement("button");
             const insertLineBreak = ["backspace", "p", "enter", "?"].indexOf(key) !== -1;
 
@@ -112,6 +136,7 @@ const Keyboard = {
                     keyElement.innerHTML = createIconHTML("backspace");
 
                     keyElement.addEventListener("click", () => {
+                        currentPosition -= 1;
                         this.properties.value = this.properties.value.substring(0, this.properties.value.length - 1);
                         this._triggerEvent("oninput");
                     });
@@ -146,6 +171,7 @@ const Keyboard = {
                     keyElement.innerHTML = createIconHTML("keyboard_return");
 
                     keyElement.addEventListener("click", () => {
+                        currentPosition += 1;
                         this.properties.value += "\n";
                         this._triggerEvent("oninput");
                     });
@@ -157,6 +183,7 @@ const Keyboard = {
                     keyElement.innerHTML = createIconHTML("space_bar");
 
                     keyElement.addEventListener("click", () => {
+                        currentPosition += 1;
                         this.properties.value += " ";
                         this._triggerEvent("oninput");
                     });
@@ -179,7 +206,6 @@ const Keyboard = {
                     keyElement.innerHTML = createIconHTML("keyboard_arrow_left");
 
                     keyElement.addEventListener("click", () => {
-                      currentPosition -= 1;
                       this._toggleLeft();
                       this._triggerEvent("oninput");
                     });
@@ -191,9 +217,19 @@ const Keyboard = {
                     keyElement.innerHTML = createIconHTML("keyboard_arrow_right");
 
                     keyElement.addEventListener("click", () => {
-                      currentPosition += 1;
                       this._toggleRight();
                       this._triggerEvent("oninput");
+                    });
+
+                    break;
+
+                case "lang":
+                    keyElement.classList.add("keyboard_key_wide");
+                    keyElement.innerHTML = "en";
+
+                    keyElement.addEventListener("click", () => {
+                      this._toggleLang();
+                      currentLanguage = keyLayoutRu;
                     });
 
                     break;
@@ -276,7 +312,27 @@ const Keyboard = {
           }
       }
     },
+
     _toggleLeft() {
+      currentPosition = currentPosition - 1 >= 0 ? currentPosition - 1 : 0;
+      textarea.selectionStart = currentPosition;
+      textarea.focus();
+      textarea.setSelectionRange(currentPosition, currentPosition);
+      rightPart = this.properties.value.substr(currentPosition)
+      this.properties.value = this.properties.value.substr(0, currentPosition);
+    },
+
+    _toggleRight() {
+      currentPosition += 1;
+      textarea.selectionStart = currentPosition;
+      textarea.focus();
+      textarea.setSelectionRange(currentPosition, currentPosition);
+      rightPart = this.properties.value.substr(currentPosition)
+      this.properties.value = this.properties.value.substr(0, currentPosition);
+    },
+
+    _toggleLang() {
+      langKey = !langKey;
     },
 
     open(initialValue, oninput, onclose) {
