@@ -1,9 +1,6 @@
 var shiftElement = {};
 var currentPosition = 0;
 var rightPart = '';
-var currentLanguage = [];
-var langKey = false;
-
 
 const Keyboard = {
     elements: {
@@ -20,7 +17,8 @@ const Keyboard = {
     properties: {
         value: "",
         capsLock: false,
-        shiftKey: false
+        shiftKey: false,
+        langKey: true,
     },
 
     init() {
@@ -29,7 +27,7 @@ const Keyboard = {
         this.elements.keysContainer = document.createElement("div");
 
         // Setup main elements
-        this.elements.main.classList.add("keyboard", "1keyboard_hidden");
+        this.elements.main.classList.add("keyboard", "keyboard_hidden");
         this.elements.keysContainer.classList.add("keyboard_keys");
         this.elements.keysContainer.appendChild(this._createKeys());
 
@@ -64,9 +62,6 @@ const Keyboard = {
                 this.properties.value = element.value.substr(0, currentPosition);
                 setCursorPosition(textarea, currentPosition);
               });
-
-              element.addEventListener("keydown", () => {
-              });
             });
         });
 
@@ -90,18 +85,22 @@ const Keyboard = {
     _createKeys() {
         const fragment = document.createDocumentFragment();
         const keyLayoutEn = [
-            "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
-            "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
-            "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", "enter",
+            // ["`", "~"], ["1", "!"], ["2", "@"], ["3", "#"], ["4", "$"], ["5", "%"], ["6", "^"], ["7", "&"],
+            // ["8", "*"], ["9", "("], ["0", ")"], ["-", "_"], ["=", "+"], "backspace",
+             "`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "backspace",
+            "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]",
+            "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'", "enter",
             "shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?",
-            "done", "space", "arrow_left", "arrow_right", "lang"
+            "done", "space", "arrow_left", "arrow_right", "en"
         ];
         const keyLayoutRu = [
-            "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
-            "й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з",
-            "caps", "ф", "ы", "в", "а", "п", "р", "о", "л", "д", "enter",
+            // ["`", "~"], ["1", "!"], ["2", "@"], ["3", "#"], ["4", "$"], ["5", "%"], ["6", "^"], ["7", "&"],
+            // ["8", "*"], ["9", "("], ["0", ")"], ["-", "_"], ["=", "+"], "backspace",
+            "`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "backspace",
+            "й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х", "ъ",
+            "caps", "ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э", "enter",
             "shift", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "?",
-            "done", "space", "arrow_left", "arrow_right", "lang"
+            "done", "space", "arrow_left", "arrow_right", "ru"
         ];
 
         // Creates HTML for an icon
@@ -109,17 +108,18 @@ const Keyboard = {
             return `<i class="material-icons">${icon_name}</i>`;
         };
 
-        if (langKey == false) {
+        //Check language
+        let currentLanguage;
+        if (this.properties.langKey) {
           currentLanguage = keyLayoutEn;
         }
-        if (langKey == true) {
+        else {
           currentLanguage = keyLayoutRu;
-          window.location.reload();
         }
 
         currentLanguage.forEach(key => {
             const keyElement = document.createElement("button");
-            const insertLineBreak = ["backspace", "p", "enter", "?"].indexOf(key) !== -1;
+            const insertLineBreak = ["backspace", "]", "ъ", "enter", "?"].indexOf(key) !== -1;
 
             // Add attributes/classes
             keyElement.setAttribute("type", "button");
@@ -157,6 +157,7 @@ const Keyboard = {
                         this._toggleShift();
                         keyElement.classList.toggle("keyboard_key_active", this.properties.shiftKey);
                         shiftElement = keyElement;
+
                     });
 
                     break;
@@ -218,13 +219,20 @@ const Keyboard = {
 
                     break;
 
-                case "lang":
-                    keyElement.classList.add("keyboard_key_wide");
-                    keyElement.innerHTML = "en";
-
-                    keyElement.addEventListener("click", () => {
+                case "en":
+                    keyElement.innerText = 'en';
+                    keyElement.addEventListener('click', () => {
                       this._toggleLang();
-                      currentLanguage = keyLayoutRu;
+                      this._triggerEvent("oninput");
+                    });
+
+                    break;
+
+                  case "ru":
+                    keyElement.innerText = 'ru';
+                    keyElement.addEventListener('click', () => {
+                      this._toggleLang();
+                      this._triggerEvent("oninput");
                     });
 
                     break;
@@ -232,9 +240,10 @@ const Keyboard = {
                 default:
                     keyElement.textContent = key.toLowerCase();
 
+                    //Shift key
                     keyElement.addEventListener("click", () => {
                       if (this.properties.shiftKey) {
-                        if (!this.properties.capsLock){
+                        if (!this.properties.capsLock) {
                           this.properties.capsLock = false;
                           this.properties.value += key.toUpperCase()
                           this._turnOffShift();
@@ -251,7 +260,7 @@ const Keyboard = {
                       if (this.properties.capsLock) {
                         this.properties.value += this.properties.capsLock ? key.toUpperCase() : key.toLowerCase();
                       }
-                      if(!this.properties.shiftKey && !this.properties.capsLock){
+                      if (!this.properties.shiftKey && !this.properties.capsLock) {
                         this.properties.value += key.toLowerCase()
                       }
 
@@ -283,30 +292,30 @@ const Keyboard = {
 
         for (const key of this.elements.keys) {
             if (key.childElementCount === 0) {
-                key.textContent = this.properties.capsLock ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
+              key.textContent = this.properties.capsLock ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
             }
         }
     },
 
     _toggleShift() {
-      this.properties.shiftKey = !this.properties.shiftKey;
+        this.properties.shiftKey = !this.properties.shiftKey;
 
-      for (const key of this.elements.keys) {
-          if (key.childElementCount === 0) {
+        for (const key of this.elements.keys) {
+            if (key.childElementCount === 0) {
               key.textContent = this.properties.shiftKey ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
-          }
-      }
-    },
+            }
+        }
+      },
 
     _turnOffShift() {
-      this.properties.shiftKey = !this.properties.shiftKey;
+        this.properties.shiftKey = !this.properties.shiftKey;
 
-      for (const key of this.elements.keys) {
-          if (key.childElementCount === 0) {
-              key.textContent = this.properties.shiftKey ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
-          }
-      }
-    },
+        for (const key of this.elements.keys) {
+            if (key.childElementCount === 0) {
+                key.textContent = this.properties.shiftKey ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
+            }
+        }
+      },
 
     _toggleLeft() {
       currentPosition = currentPosition - 1 >= 0 ? currentPosition - 1 : 0;
@@ -327,7 +336,12 @@ const Keyboard = {
     },
 
     _toggleLang() {
-      langKey = !langKey;
+      this.properties.langKey = !this.properties.langKey;
+      this.properties.shiftKey = !this.properties.shiftKey;
+
+      while (this.elements.keysContainer.children.length > 0) this.elements.keysContainer.children[0].remove();
+      this.elements.keysContainer.appendChild(this._createKeys());
+      this.elements.keys = this.elements.keysContainer.querySelectorAll(".keyboard__key");
     },
 
     open(initialValue, oninput, onclose) {
