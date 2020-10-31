@@ -49,7 +49,7 @@ const Keyboard = {
                     rightPart = '';
                     currentPosition = textarea.selectionStart;
                     setCursorPosition(textarea, currentPosition);
-                    rightPart = element.value.substr(currentPosition)
+                    rightPart = element.value.substr(currentPosition);
                     this.properties.value = element.value.substr(0, currentPosition);
                     setCursorPosition(textarea, currentPosition);
                 }
@@ -58,7 +58,15 @@ const Keyboard = {
               textarea.addEventListener("click", () => {
                 currentPosition = textarea.selectionStart;
                 setCursorPosition(textarea, currentPosition);
-                rightPart = element.value.substr(currentPosition)
+                rightPart = element.value.substr(currentPosition);
+                this.properties.value = element.value.substr(0, currentPosition);
+                setCursorPosition(textarea, currentPosition);
+              });
+
+              textarea.addEventListener("keypress", () => {
+                currentPosition = textarea.selectionStart;
+                setCursorPosition(textarea, currentPosition);
+                rightPart = element.value.substr(currentPosition);
                 this.properties.value = element.value.substr(0, currentPosition);
                 setCursorPosition(textarea, currentPosition);
               });
@@ -341,7 +349,7 @@ const Keyboard = {
 
       while (this.elements.keysContainer.children.length > 0) this.elements.keysContainer.children[0].remove();
       this.elements.keysContainer.appendChild(this._createKeys());
-      this.elements.keys = this.elements.keysContainer.querySelectorAll(".keyboard__key");
+      this.elements.keys = this.elements.keysContainer.querySelectorAll(".keyboard_key");
     },
 
     open(initialValue, oninput, onclose) {
