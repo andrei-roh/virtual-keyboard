@@ -19,6 +19,7 @@ const Keyboard = {
         capsLock: false,
         shiftKey: false,
         langKey: true,
+        voiceKey: false
     },
 
     init() {
@@ -99,7 +100,7 @@ const Keyboard = {
             "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]",
             "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'", "enter",
             "shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?",
-            "done", "space", "arrow_left", "arrow_right", "en"
+            "done", "space", "arrow_left", "arrow_right", "en", "voice"
         ];
         const keyLayoutRu = [
             // ["`", "~"], ["1", "!"], ["2", "@"], ["3", "#"], ["4", "$"], ["5", "%"], ["6", "^"], ["7", "&"],
@@ -108,7 +109,7 @@ const Keyboard = {
             "й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х", "ъ",
             "caps", "ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э", "enter",
             "shift", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "?",
-            "done", "space", "arrow_left", "arrow_right", "ru"
+            "done", "space", "arrow_left", "arrow_right", "ru", "voice"
         ];
 
         // Creates HTML for an icon
@@ -245,6 +246,46 @@ const Keyboard = {
 
                     break;
 
+                  case 'voice':
+                    keyElement.classList.add("keyboard_key_wide", "keyboard_key_activatable");
+                    if (this.properties.voiceKey){
+                      keyElement.innerHTML = createIconHTML("mic");
+                      keyElement.classList.toggle("keyboard_key_active");
+                    }
+                    else {
+                      keyElement.innerHTML = createIconHTML("mic_off");
+                    }
+
+                    keyElement.addEventListener('click', () => {
+                      this.properties.voiceKey = !this.properties.voiceKey;
+                      window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+                      const recognition = new SpeechRecognition();
+                      recognition.interimResults = false;
+                      recognition.language = this.properties.langKey ? 'en-EN':'ru-RU';
+                      recognition.addEventListener('result', e => {
+                        recognition.language = this.properties.langKey ? 'en-EN':'ru-RU';
+                        this._toggleTalk(e);
+                    });
+                    recognition.addEventListener('end', () => {
+                        if (this.properties.voiceKey) {
+                            recognition.language = this.properties.langKey ? 'en-EN':'ru-RU';
+                            recognition.start();
+                        }
+                        else {
+                            recognition.stop();
+                        }
+                    });
+
+                    textarea.focus();
+                    while (this.elements.keysContainer.children.length > 0) this.elements.keysContainer.children[0].remove();
+                    this.elements.keysContainer.appendChild(this._createKeys());
+                    this.elements.keys = this.elements.keysContainer.querySelectorAll(".keyboard_key");
+                    recognition.start();
+                    });
+
+                    break;
+
                 default:
                     keyElement.textContent = key.toLowerCase();
 
@@ -350,6 +391,23 @@ const Keyboard = {
       while (this.elements.keysContainer.children.length > 0) this.elements.keysContainer.children[0].remove();
       this.elements.keysContainer.appendChild(this._createKeys());
       this.elements.keys = this.elements.keysContainer.querySelectorAll(".keyboard_key");
+    },
+
+    _toggleTalk() {
+      if (!this.properties.voice) {
+        return;
+      }
+      const transcript = Array.from(e.results)
+      .map(result => result[0])
+      .map(result => result.transcript)
+      .join('');
+
+      this.properties.value = document.querySelector('.use_keyboard_input').value.slice(0, currentPosition);
+      rightPart = document.querySelector('.use_keyboard_input').value.slice(currentPosition);
+      document.querySelector('.use_keyboard_input').value = this.properties.value + transcript + ' ' + rightPart;
+      currentPosition += transcript.length + 1;
+      document.querySelector('.use_keyboard_input').selectionStart = rightPart;
+      document.querySelector('.use_keyboard_input').selectionEnd = rightPart;
     },
 
     open(initialValue, oninput, onclose) {
